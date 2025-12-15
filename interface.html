@@ -223,12 +223,14 @@
   {
     "task": "Complete project proposal",
     "list": "Monday",
+    "category": "Work",
     "desc": "Draft initial version and send for review"
   },
   {
-    "task": "Team standup meeting",
+    "task": "AWS certification study",
     "list": "Tuesday",
-    "desc": "Discuss sprint progress and blockers"
+    "category": "Study",
+    "desc": "Review EC2 and S3 concepts"
   }
 ]'
             ></textarea>
@@ -290,32 +292,50 @@
                 {
                     "task": "Complete project proposal",
                     "list": "Monday",
+                    "category": "Work",
                     "desc": "Draft initial version focusing on timeline and budget. Include risk assessment."
                 },
                 {
-                    "task": "Review team feedback",
+                    "task": "AWS - Study EC2 basics",
                     "list": "Monday",
-                    "desc": "Consolidate comments from last week's retrospective"
+                    "category": "Study",
+                    "desc": "Watch tutorial videos on instance types and pricing. Take notes for certification exam."
                 },
                 {
                     "task": "Client presentation prep",
                     "list": "Tuesday",
+                    "category": "Work",
                     "desc": "Create slides for Wednesday's demo. Focus on ROI and key features."
+                },
+                {
+                    "task": "AWS - Practice labs",
+                    "list": "Tuesday",
+                    "category": "Study",
+                    "desc": "Complete hands-on S3 and EC2 exercises on AWS training portal."
                 },
                 {
                     "task": "Deploy to staging",
                     "list": "Wednesday",
+                    "category": "Work",
                     "desc": "Deploy latest build and run smoke tests. Notify QA team."
                 },
                 {
                     "task": "Code review session",
                     "list": "Thursday",
+                    "category": "Work",
                     "desc": "Review PRs #234, #235, and #236. Focus on security and performance."
                 },
                 {
-                    "task": "Sprint planning",
+                    "task": "Fix critical production bug",
                     "list": "Friday",
-                    "desc": "Plan next sprint with team. Prioritize bug fixes and new feature requests."
+                    "category": "Urgent",
+                    "desc": "Authentication issue blocking user logins. Priority fix before weekend."
+                },
+                {
+                    "task": "Research Docker containerization",
+                    "list": "Backlog",
+                    "category": "Study",
+                    "desc": "Learn Docker basics when time allows. Not urgent, for future project."
                 }
             ];
 
@@ -356,7 +376,9 @@
             }
 
             // Validate each task has required fields
-            const validDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            const validDays = ['Backlog', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'Done'];
+            const validCategories = ['Work', 'Study', 'Urgent'];
+
             for (let i = 0; i < tasks.length; i++) {
                 const task = tasks[i];
 
@@ -371,7 +393,17 @@
                 }
 
                 if (!validDays.includes(task.list)) {
-                    showStatus(`❌ Task ${i + 1} has invalid day "${task.list}". Must be one of: ${validDays.join(', ')}`, 'error');
+                    showStatus(`❌ Task ${i + 1} has invalid list "${task.list}". Must be one of: ${validDays.join(', ')}`, 'error');
+                    return;
+                }
+
+                if (!task.category || typeof task.category !== 'string') {
+                    showStatus(`❌ Task ${i + 1} is missing a valid "category" field.`, 'error');
+                    return;
+                }
+
+                if (!validCategories.includes(task.category)) {
+                    showStatus(`❌ Task ${i + 1} has invalid category "${task.category}". Must be one of: ${validCategories.join(', ')}`, 'error');
                     return;
                 }
 

@@ -7,25 +7,40 @@ Copy and paste this prompt into ChatGPT, Claude, Gemini, or any AI assistant to 
 ## The Prompt
 
 ```
-I need you to help me plan my work week. Please listen to my goals, tasks, and constraints, then output a structured weekly plan.
+I need you to help me plan my work and study tasks for the week. Please listen to my goals, tasks, and constraints, then output a structured weekly plan.
 
 CRITICAL: Your final output MUST be a valid JSON array following this exact format:
 
 [
   {
     "task": "Clear, actionable task name",
-    "list": "DayOfWeek",
+    "list": "DayOfWeek or Backlog",
+    "category": "Work or Study or Urgent",
     "desc": "Detailed description with context, dependencies, or notes"
   }
 ]
 
 RULES FOR THE JSON OUTPUT:
-1. The "list" field MUST be one of these exact day names: "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
-2. Use standard day capitalization (first letter uppercase)
-3. Each task should be specific and actionable
-4. Descriptions should provide context, not just repeat the task name
-5. Output ONLY the JSON array - no explanatory text before or after
-6. Ensure the JSON is valid (proper quotes, commas, brackets)
+1. The "list" field MUST be one of: "Backlog", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "Done"
+2. The "category" field MUST be one of: "Work", "Study", "Urgent"
+3. Use "Backlog" for tasks without a specific day assigned yet
+4. Use "Done" for already completed tasks (if tracking them)
+5. Each task should be specific and actionable
+6. Descriptions should provide context, not just repeat the task name
+7. Output ONLY the JSON array - no explanatory text before or after
+8. Ensure the JSON is valid (proper quotes, commas, brackets)
+
+CATEGORY GUIDELINES:
+- "Work": Professional tasks, meetings, deliverables, code reviews, client work
+  ✓ Examples: "Complete Q4 report", "Deploy to production", "Client presentation", "Review team PRs"
+
+- "Study": Learning, courses, certifications, technical reading, skill development
+  ✓ Examples: "AWS certification practice", "Read React documentation", "Complete online course module", "Practice coding problems"
+
+- "Urgent": Time-sensitive tasks requiring immediate attention (can be work or study)
+  ✓ Examples: "Fix production bug", "Submit proposal before deadline", "Study for exam tomorrow", "Emergency client call"
+
+NOTE: This system is designed for professional productivity (work and study). Personal life tasks (groceries, errands, social events) should use a separate system.
 
 Now, here's what I need to accomplish this week:
 
@@ -54,7 +69,7 @@ I need you to help me plan my work week. Please listen to my goals, tasks, and c
 
 Now, here's what I need to accomplish this week:
 
-I'm launching a new feature on Friday. I need to:
+I'm launching a new feature on Friday and also need to study for my AWS certification exam. I need to:
 - Finish the API endpoints (currently 70% done)
 - Write unit tests for the new code
 - Update the documentation
@@ -62,6 +77,8 @@ I'm launching a new feature on Friday. I need to:
 - Do a security review
 - Deploy to staging and test
 - Prepare a demo for stakeholders
+- Study AWS EC2 and S3 concepts
+- Complete 2 practice exams
 
 I also have regular commitments:
 - Monday morning standup
@@ -78,67 +95,98 @@ I want to keep Friday afternoon light so I can handle any last-minute issues bef
   {
     "task": "Complete API endpoints",
     "list": "Monday",
+    "category": "Work",
     "desc": "Finish the remaining 30% of API development. Focus on the user profile and settings endpoints. Test locally before committing."
   },
   {
     "task": "Write unit tests for new API endpoints",
     "list": "Monday",
+    "category": "Work",
     "desc": "Aim for 80%+ coverage. Focus on edge cases and error handling. Use existing test patterns."
+  },
+  {
+    "task": "AWS - Study EC2 basics",
+    "list": "Monday",
+    "category": "Study",
+    "desc": "Watch tutorial videos on EC2 instance types, pricing models, and basic configuration. Take notes for exam."
   },
   {
     "task": "Submit UI mockups for design review",
     "list": "Monday",
+    "category": "Work",
     "desc": "Share Figma links with design team. Highlight the new onboarding flow and settings panel. Request feedback by EOD Tuesday."
   },
   {
     "task": "Security review - API authentication",
     "list": "Tuesday",
+    "category": "Work",
     "desc": "Review OAuth implementation, rate limiting, and input validation. Check OWASP top 10 compliance."
   },
   {
     "task": "Security review - Data validation",
     "list": "Tuesday",
+    "category": "Work",
     "desc": "Audit all user inputs for XSS, SQL injection, and CSRF vulnerabilities. Test with malicious payloads."
+  },
+  {
+    "task": "AWS - Study S3 storage",
+    "list": "Tuesday",
+    "category": "Study",
+    "desc": "Learn about S3 buckets, storage classes, lifecycle policies, and security. Practice with hands-on labs."
   },
   {
     "task": "Incorporate design feedback on UI",
     "list": "Wednesday",
+    "category": "Work",
     "desc": "Update mockups based on Tuesday's design review. Get final approval before implementation."
   },
   {
     "task": "Deploy to staging environment",
     "list": "Wednesday",
+    "category": "Work",
     "desc": "Deploy latest code to staging. Run smoke tests. Share staging URL with QA team."
+  },
+  {
+    "task": "AWS - Practice exam 1",
+    "list": "Wednesday",
+    "category": "Study",
+    "desc": "Complete first full-length practice exam. Review incorrect answers and note weak areas."
   },
   {
     "task": "Update API documentation",
     "list": "Thursday",
+    "category": "Work",
     "desc": "Document all new endpoints in Swagger. Include request/response examples and authentication requirements."
   },
   {
     "task": "End-to-end testing on staging",
     "list": "Thursday",
+    "category": "Work",
     "desc": "Test complete user flows. Verify integration with existing features. Check mobile responsiveness."
   },
   {
     "task": "Prepare stakeholder demo",
     "list": "Thursday",
+    "category": "Work",
     "desc": "Create demo script and slides. Prepare talking points for business value. Anticipate questions about timeline and scalability."
   },
   {
     "task": "Final checks and monitoring setup",
     "list": "Friday",
+    "category": "Urgent",
     "desc": "Verify production deploy checklist. Set up error monitoring and alerts. Have rollback plan ready."
   },
   {
     "task": "Launch new feature",
     "list": "Friday",
+    "category": "Urgent",
     "desc": "Deploy to production during low-traffic window. Monitor logs and metrics. Be available for immediate fixes."
   },
   {
-    "task": "Buffer time - Launch support",
-    "list": "Friday",
-    "desc": "Keep afternoon clear for addressing any launch issues, user feedback, or unexpected bugs."
+    "task": "AWS - Practice exam 2",
+    "list": "Backlog",
+    "category": "Study",
+    "desc": "Second practice exam to take when time allows. Focus on areas identified as weak in exam 1."
   }
 ]
 ```
@@ -186,6 +234,32 @@ If your Trello board uses different list names (e.g., "Mon" instead of "Monday")
 The "list" field MUST be one of: "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
 ```
 
+### Using Backlog Effectively
+
+The "Backlog" list is perfect for:
+- Tasks without a specific deadline
+- Ideas for future work or study
+- Tasks that depend on external factors
+- Items to schedule once the week becomes clearer
+
+Example:
+```json
+{
+  "task": "Research Docker containerization",
+  "list": "Backlog",
+  "category": "Study",
+  "desc": "Learn Docker basics when I have extra time. Not urgent."
+}
+```
+
+### Different List Names
+
+If your Trello board uses different list names, modify the prompt:
+
+```
+The "list" field MUST be one of: "Ideas", "Mon", "Tue", "Wed", "Thu", "Fri", "Completed"
+```
+
 ### Additional Fields
 
 Want to add more data? Extend the JSON format:
@@ -194,22 +268,14 @@ Want to add more data? Extend the JSON format:
 {
   "task": "Task name",
   "list": "Monday",
+  "category": "Work",
   "desc": "Description",
   "priority": "High",
-  "estimate": "2 hours",
-  "tags": ["frontend", "urgent"]
+  "estimate": "2 hours"
 }
 ```
 
 Then update your n8n Code Node to handle the extra fields.
-
-### Non-Week-Based Planning
-
-Planning by project phase instead of days?
-
-```
-The "list" field MUST be one of: "Planning", "Development", "Testing", "Review", "Complete"
-```
 
 ---
 

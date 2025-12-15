@@ -1,8 +1,13 @@
-# 🦥 LazyPlanner
+# 🦥 LazyPlanner v2.0
 
-> **Automate your laziness.** Let AI plan your week, then watch it magically appear in Trello—no effort required.
+> **Automate your laziness.** Let AI plan your work and study tasks, then watch them magically appear in Trello with color-coded labels—no effort required.
 
-LazyPlanner is a zero-budget automation bridge that takes your AI-generated weekly plans (ChatGPT, Claude, Gemini) and automatically creates Trello cards using a local n8n instance. No APIs to pay for, no cloud webhooks, just pure automation bliss.
+LazyPlanner is a zero-budget automation bridge that takes your AI-generated work/study plans (ChatGPT, Claude, Gemini) and automatically creates categorized Trello cards using a local n8n instance. No APIs to pay for, no cloud webhooks, just pure automation bliss.
+
+**New in v2.0:**
+- 🔵 **Work** / 🟢 **Study** / 🔴 **Urgent** category labels
+- 📋 **Backlog** and **Done** lists support
+- Professional focus (work and study tasks only)
 
 ## 🎯 The Problem
 
@@ -52,10 +57,14 @@ You → GenAI → Copy JSON → HTML Interface → n8n Webhook → Trello
 3. **Get your List IDs:**
    - In the same JSON, scroll to find the `"lists"` array
    - Each list has an `"id"` and `"name"`
-   - Copy the IDs for your day-based lists (Monday, Tuesday, etc.)
+   - Copy the IDs for Backlog, all day lists, and Done (9 lists total)
 
    ```json
    "lists": [
+     {
+       "id": "54a1b2c3d4e5f6g7h8i9j0k0",
+       "name": "Backlog"
+     },
      {
        "id": "64a1b2c3d4e5f6g7h8i9j0k1",
        "name": "Monday"
@@ -63,6 +72,34 @@ You → GenAI → Copy JSON → HTML Interface → n8n Webhook → Trello
      {
        "id": "74a1b2c3d4e5f6g7h8i9j0k2",
        "name": "Tuesday"
+     }
+   ]
+   ```
+
+4. **Get your Label IDs (for categories):**
+   - In the same board JSON, find the `"labels"` array near the top
+   - Create or find these three labels:
+     - Blue label (for Work)
+     - Green label (for Study)
+     - Red label (for Urgent)
+   - Copy their IDs
+
+   ```json
+   "labels": [
+     {
+       "id": "64a1b2c3d4e5f6g7h8i9j0k9",
+       "name": "Work",
+       "color": "blue"
+     },
+     {
+       "id": "74a1b2c3d4e5f6g7h8i9j0k8",
+       "name": "Study",
+       "color": "green"
+     },
+     {
+       "id": "84a1b2c3d4e5f6g7h8i9j0k7",
+       "name": "Urgent",
+       "color": "red"
      }
    ]
    ```
@@ -88,7 +125,9 @@ You → GenAI → Copy JSON → HTML Interface → n8n Webhook → Trello
 
    **Node 2: Code Node**
    - Copy the code from [`n8n-code-node.js`](n8n-code-node.js)
-   - **IMPORTANT:** Update the `listMap` object with YOUR Trello List IDs
+   - **IMPORTANT:** Update BOTH configuration objects:
+     - `listMap`: Add your Trello List IDs (including Backlog and Done)
+     - `labelMap`: Add your Trello Label IDs (Work=Blue, Study=Green, Urgent=Red)
 
    **Node 3: Trello Node**
    - Operation: `Create a Card`
@@ -96,6 +135,9 @@ You → GenAI → Copy JSON → HTML Interface → n8n Webhook → Trello
      - List ID: `{{ $json.listId }}`
      - Name: `{{ $json.task }}`
      - Description: `{{ $json.desc }}`
+     - Labels: `{{ $json.idLabels }}`
+
+   **IMPORTANT:** Type the Labels expression exactly as shown. No extra whitespace or characters, or you'll get "Invalid objectId" errors.
 
 3. **Activate your workflow** (toggle switch in top-right)
 
@@ -174,30 +216,81 @@ If your n8n runs on a different port:
 
 ## 🎨 Customization Ideas
 
-- Add priority labels or tags to cards
 - Set due dates based on the day of week
 - Add members to cards automatically
 - Create checklists from task descriptions
 - Send a Slack/Discord notification when complete
 - Add a "delete all cards" button for quick resets
+- Combine multiple labels (e.g., Work + Urgent)
+
+## 📋 Trello Board Setup Guide
+
+Before using LazyPlanner v2.0, set up your Trello board in this exact order:
+
+### Step 1: Create Lists (left to right)
+1. Backlog
+2. Monday
+3. Tuesday
+4. Wednesday
+5. Thursday
+6. Friday
+7. Saturday
+8. Sunday
+9. Done
+
+### Step 2: Create Labels
+Create exactly three labels with these settings:
+
+| Label Name | Color | Purpose |
+|------------|-------|---------|
+| Work | Blue | Professional tasks, meetings, deliverables |
+| Study | Green | Learning, courses, certifications, reading |
+| Urgent | Red | Time-sensitive tasks requiring immediate attention |
+
+**How to create labels:**
+- Click on a card → Labels → Create new label
+- Set the exact name and color as shown above
+
+### Step 3: Get IDs (using the .json trick)
+1. Open your Trello board
+2. Add `.json` to the end of the URL (e.g., `https://trello.com/b/ABC123/my-board.json`)
+3. Copy the following IDs:
+   - **Board ID:** Near the top of the JSON
+   - **All List IDs:** In the `"lists"` array (9 IDs total)
+   - **All Label IDs:** In the `"labels"` array (3 IDs for Work, Study, Urgent)
+
+### Step 4: Configure n8n
+- Paste List IDs into `listMap` in the Code Node
+- Paste Label IDs into `labelMap` in the Code Node
+- Match colors: Work=Blue, Study=Green, Urgent=Red
+
+**Visual Overview:**
+
+For the best experience with work/study tracking:
+
+**Labels:**
+- 🔵 **Blue (Work)** - Professional tasks, meetings, deliverables
+- 🟢 **Green (Study)** - Learning, courses, reading, practice
+- 🔴 **Red (Urgent)** - High-priority or time-sensitive tasks
 
 ## 📝 Example Workflow
 
 **You to AI:**
-> "Help me plan my work week. I need to finish the Q4 report, review 3 PRs, plan the team offsite, and prepare for Friday's demo."
+> "Help me plan my work week. I need to finish the Q4 report, review 3 PRs, and study for my AWS certification exam on Friday."
 
 **AI generates:**
 ```json
 [
-  {"task": "Q4 Report - Draft sections 1-3", "list": "Monday", "desc": "Focus on revenue analysis and market trends"},
-  {"task": "Q4 Report - Complete financial charts", "list": "Tuesday", "desc": "Use latest data from accounting"},
-  {"task": "Review PR #234 - Auth refactor", "list": "Tuesday", "desc": "Check security implications"},
-  {"task": "Review PR #235 - UI updates", "list": "Wednesday", "desc": "Test responsive design"},
-  {"task": "Review PR #236 - API optimization", "list": "Wednesday", "desc": "Benchmark performance improvements"},
-  {"task": "Team Offsite - Book venue", "list": "Wednesday", "desc": "Capacity for 15 people, A/V setup needed"},
-  {"task": "Team Offsite - Draft agenda", "list": "Thursday", "desc": "Include Q1 planning and retrospective"},
-  {"task": "Friday Demo - Prepare slides", "list": "Thursday", "desc": "Include live demo of new feature"},
-  {"task": "Friday Demo - Rehearse presentation", "list": "Friday", "desc": "30-minute slot, leave time for Q&A"}
+  {"task": "Q4 Report - Draft sections 1-3", "list": "Monday", "category": "Work", "desc": "Focus on revenue analysis and market trends"},
+  {"task": "AWS - Study EC2 basics", "list": "Monday", "category": "Study", "desc": "Watch tutorials on instance types and pricing models"},
+  {"task": "Q4 Report - Complete financial charts", "list": "Tuesday", "category": "Work", "desc": "Use latest data from accounting"},
+  {"task": "Review PR #234 - Auth refactor", "list": "Tuesday", "category": "Work", "desc": "Check security implications"},
+  {"task": "AWS - S3 practice labs", "list": "Tuesday", "category": "Study", "desc": "Complete hands-on exercises for S3 storage"},
+  {"task": "Review PR #235 - UI updates", "list": "Wednesday", "category": "Work", "desc": "Test responsive design"},
+  {"task": "Review PR #236 - API optimization", "list": "Wednesday", "category": "Work", "desc": "Benchmark performance improvements"},
+  {"task": "AWS - Practice exam 1", "list": "Thursday", "category": "Study", "desc": "Take full-length practice test and review weak areas"},
+  {"task": "Friday Demo - Prepare slides", "list": "Thursday", "category": "Work", "desc": "Include live demo of new feature"},
+  {"task": "Final review before exam", "list": "Friday", "category": "Urgent", "desc": "Quick review of key concepts before certification exam"}
 ]
 ```
 
