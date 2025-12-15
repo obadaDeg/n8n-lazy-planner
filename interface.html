@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦥 LazyPlanner - Send to Trello</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header .emoji {
+            font-size: 3em;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .input-section {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .status.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .status-icon {
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .task-count {
+            margin-top: 10px;
+            color: #666;
+            font-size: 0.9em;
+            text-align: right;
+        }
+
+        .example-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .example-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .example-link a:hover {
+            text-decoration: underline;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #999;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <span class="emoji">🦥</span>
+            <h1>LazyPlanner</h1>
+            <p>Paste your AI-generated plan and watch it appear in Trello</p>
+        </div>
+
+        <div class="input-section">
+            <label for="jsonInput">Paste your JSON here:</label>
+            <textarea
+                id="jsonInput"
+                placeholder='[
+  {
+    "task": "Complete project proposal",
+    "list": "Monday",
+    "desc": "Draft initial version and send for review"
+  },
+  {
+    "task": "Team standup meeting",
+    "list": "Tuesday",
+    "desc": "Discuss sprint progress and blockers"
+  }
+]'
+            ></textarea>
+            <div class="task-count" id="taskCount">0 tasks</div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-secondary" onclick="clearInput()">Clear</button>
+            <button class="btn-primary" id="sendButton" onclick="sendToN8n()">Send to n8n 🚀</button>
+        </div>
+
+        <div class="status" id="status"></div>
+
+        <div class="example-link">
+            <a href="#" onclick="loadExample(); return false;">Load example JSON</a>
+        </div>
+
+        <div class="footer">
+            Made with 🦥 by lazy developers, for lazy developers
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const WEBHOOK_URL = 'http://localhost:5678/webhook/weekly-plan';
+
+        // Update task count as user types
+        document.getElementById('jsonInput').addEventListener('input', updateTaskCount);
+
+        function updateTaskCount() {
+            const input = document.getElementById('jsonInput').value.trim();
+            if (!input) {
+                document.getElementById('taskCount').textContent = '0 tasks';
+                return;
+            }
+
+            try {
+                const data = JSON.parse(input);
+                if (Array.isArray(data)) {
+                    const count = data.length;
+                    document.getElementById('taskCount').textContent =
+                        `${count} task${count !== 1 ? 's' : ''}`;
+                } else {
+                    document.getElementById('taskCount').textContent = 'Invalid format';
+                }
+            } catch (e) {
+                document.getElementById('taskCount').textContent = 'Invalid JSON';
+            }
+        }
+
+        function clearInput() {
+            document.getElementById('jsonInput').value = '';
+            updateTaskCount();
+            hideStatus();
+        }
+
+        function loadExample() {
+            const exampleJSON = [
+                {
+                    "task": "Complete project proposal",
+                    "list": "Monday",
+                    "desc": "Draft initial version focusing on timeline and budget. Include risk assessment."
+                },
+                {
+                    "task": "Review team feedback",
+                    "list": "Monday",
+                    "desc": "Consolidate comments from last week's retrospective"
+                },
+                {
+                    "task": "Client presentation prep",
+                    "list": "Tuesday",
+                    "desc": "Create slides for Wednesday's demo. Focus on ROI and key features."
+                },
+                {
+                    "task": "Deploy to staging",
+                    "list": "Wednesday",
+                    "desc": "Deploy latest build and run smoke tests. Notify QA team."
+                },
+                {
+                    "task": "Code review session",
+                    "list": "Thursday",
+                    "desc": "Review PRs #234, #235, and #236. Focus on security and performance."
+                },
+                {
+                    "task": "Sprint planning",
+                    "list": "Friday",
+                    "desc": "Plan next sprint with team. Prioritize bug fixes and new feature requests."
+                }
+            ];
+
+            document.getElementById('jsonInput').value = JSON.stringify(exampleJSON, null, 2);
+            updateTaskCount();
+            showStatus('Example loaded! Click "Send to n8n" when ready.', 'info');
+        }
+
+        async function sendToN8n() {
+            const input = document.getElementById('jsonInput').value.trim();
+            const sendButton = document.getElementById('sendButton');
+
+            // Validate input exists
+            if (!input) {
+                showStatus('⚠️ Please paste your JSON first!', 'error');
+                return;
+            }
+
+            // Validate JSON format
+            let tasks;
+            try {
+                tasks = JSON.parse(input);
+            } catch (e) {
+                showStatus('❌ Invalid JSON format. Please check your input and try again.', 'error');
+                return;
+            }
+
+            // Validate it's an array
+            if (!Array.isArray(tasks)) {
+                showStatus('❌ JSON must be an array of tasks. Did you forget the [ ] brackets?', 'error');
+                return;
+            }
+
+            // Validate array is not empty
+            if (tasks.length === 0) {
+                showStatus('⚠️ No tasks found in the JSON array.', 'error');
+                return;
+            }
+
+            // Validate each task has required fields
+            const validDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            for (let i = 0; i < tasks.length; i++) {
+                const task = tasks[i];
+
+                if (!task.task || typeof task.task !== 'string') {
+                    showStatus(`❌ Task ${i + 1} is missing a valid "task" field.`, 'error');
+                    return;
+                }
+
+                if (!task.list || typeof task.list !== 'string') {
+                    showStatus(`❌ Task ${i + 1} is missing a valid "list" field.`, 'error');
+                    return;
+                }
+
+                if (!validDays.includes(task.list)) {
+                    showStatus(`❌ Task ${i + 1} has invalid day "${task.list}". Must be one of: ${validDays.join(', ')}`, 'error');
+                    return;
+                }
+
+                if (!task.desc || typeof task.desc !== 'string') {
+                    showStatus(`❌ Task ${i + 1} is missing a valid "desc" field.`, 'error');
+                    return;
+                }
+            }
+
+            // Disable button during request
+            sendButton.disabled = true;
+            sendButton.textContent = 'Sending...';
+            showStatus('📤 Sending tasks to n8n...', 'info');
+
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(tasks)
+                });
+
+                if (response.ok) {
+                    showStatus(`✅ Success! ${tasks.length} task${tasks.length !== 1 ? 's' : ''} sent to Trello. Check your board!`, 'success');
+                    // Optionally clear the input after successful send
+                    // clearInput();
+                } else {
+                    const errorText = await response.text();
+                    showStatus(`❌ Server error (${response.status}): ${errorText}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+
+                if (error.message.includes('Failed to fetch')) {
+                    showStatus(
+                        '❌ Cannot connect to n8n. Make sure:\n' +
+                        '1. n8n is running (http://localhost:5678)\n' +
+                        '2. Your workflow is activated\n' +
+                        '3. CORS is enabled in n8n webhook settings',
+                        'error'
+                    );
+                } else {
+                    showStatus(`❌ Error: ${error.message}`, 'error');
+                }
+            } finally {
+                // Re-enable button
+                sendButton.disabled = false;
+                sendButton.textContent = 'Send to n8n 🚀';
+            }
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = 'status ' + type;
+            statusDiv.style.display = 'block';
+            statusDiv.style.whiteSpace = 'pre-line'; // Preserve line breaks
+        }
+
+        function hideStatus() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.style.display = 'none';
+        }
+
+        // Initialize task count
+        updateTaskCount();
+    </script>
+</body>
+</html>

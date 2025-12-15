@@ -1,0 +1,54 @@
+# LazyPlanner - Git Ignore File
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Environment variables (if you add any later)
+.env
+.env.local
+.env.*.local
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# n8n local data (if running n8n locally in this directory)
+.n8n/
+
+# Logs
+logs/
+*.log
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Temporary files
+*.tmp
+*.temp
+
+# Personal notes and scratch files
+notes.md
+scratch.md
+TODO.md
+
+# Backup files
+*.bak
+*.backup
+
+# Trello credentials (if you create a config file)
+config.json
+credentials.json
+
+# Any local customization files
+local-*.html
+local-*.js
+my-*.md
