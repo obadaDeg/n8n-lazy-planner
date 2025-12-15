@@ -1,0 +1,127 @@
+{
+  "name": "LazyPlanner v2.0 - Weekly Planner",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "weekly-plan",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p",
+      "name": "Webhook - Weekly Plan",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        250,
+        300
+      ],
+      "webhookId": "weekly-plan"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * LazyPlanner v2.0 - n8n Code Node\n *\n * This code maps day names and categories to your Trello List IDs and Label IDs.\n *\n * IMPORTANT: Update BOTH configuration objects below with YOUR Trello IDs!\n *\n * How to get IDs:\n * 1. Open your Trello board\n * 2. Add .json to the URL (e.g., https://trello.com/b/ABC123/my-board.json)\n * 3. Find the \"lists\" array and copy IDs for Backlog, days, and Done\n * 4. Find the \"labels\" array and copy IDs for Work (blue), Study (green), Urgent (red)\n */\n\n// ============================================\n// CONFIGURATION - UPDATE THIS WITH YOUR IDS!\n// ============================================\n\nconst listMap = {\n  // Replace these IDs with your actual Trello List IDs\n  \"Backlog\":   \"YOUR_BACKLOG_LIST_ID_HERE\",\n  \"Monday\":    \"YOUR_MONDAY_LIST_ID_HERE\",\n  \"Tuesday\":   \"YOUR_TUESDAY_LIST_ID_HERE\",\n  \"Wednesday\": \"YOUR_WEDNESDAY_LIST_ID_HERE\",\n  \"Thursday\":  \"YOUR_THURSDAY_LIST_ID_HERE\",\n  \"Friday\":    \"YOUR_FRIDAY_LIST_ID_HERE\",\n  \"Saturday\":  \"YOUR_SATURDAY_LIST_ID_HERE\",\n  \"Sunday\":    \"YOUR_SUNDAY_LIST_ID_HERE\",\n  \"Done\":      \"YOUR_DONE_LIST_ID_HERE\"\n};\n\n// Map categories to Trello Label IDs\n// Get these by adding .json to your board URL and finding the \"labels\" array\nconst labelMap = {\n  \"Work\":   \"YOUR_BLUE_LABEL_ID_HERE\",    // Blue label for work tasks\n  \"Study\":  \"YOUR_GREEN_LABEL_ID_HERE\",   // Green label for study tasks\n  \"Urgent\": \"YOUR_RED_LABEL_ID_HERE\"      // Red label for urgent tasks\n};\n\n// ============================================\n// PROCESSING LOGIC - DON'T MODIFY BELOW\n// ============================================\n\n// Get the incoming data from the webhook\nconst items = $input.all();\n\n// This will hold our processed tasks\nconst processedTasks = [];\n\n// Process each item from the webhook\nfor (const item of items) {\n  // The webhook body contains the array of tasks\n  const tasks = item.json.body || item.json;\n\n  // Handle both single object and array inputs\n  const taskArray = Array.isArray(tasks) ? tasks : [tasks];\n\n  for (const task of taskArray) {\n    // Validate required fields\n    if (!task.task || !task.list || !task.desc || !task.category) {\n      console.error('Invalid task format (missing required fields):', task);\n      continue; // Skip invalid tasks\n    }\n\n    // Get the Trello List ID from our mapping\n    const listId = listMap[task.list];\n\n    // If we don't have a mapping for this list, throw error\n    if (!listId) {\n      throw new Error(\n        `No List ID mapping found for list: \"${task.list}\". ` +\n        `This task should have been caught by validation. ` +\n        `Available lists: ${Object.keys(listMap).join(', ')}`\n      );\n    }\n\n    // Check if the list ID has been configured\n    if (listId.includes('YOUR_') && listId.includes('_LIST_ID_HERE')) {\n      throw new Error(\n        `List ID not configured for ${task.list}! ` +\n        `Please update the listMap in the Code Node with your actual Trello List IDs. ` +\n        `See the README for instructions on getting List IDs.`\n      );\n    }\n\n    // Get the Trello Label ID from our mapping\n    const labelId = labelMap[task.category];\n\n    // Validate label mapping exists - STRICT FAILURE (consistent with validation philosophy)\n    if (!labelId) {\n      throw new Error(\n        `No Label ID mapping found for category: \"${task.category}\". ` +\n        `This task should have been caught by validation. ` +\n        `Valid categories: ${Object.keys(labelMap).join(', ')}`\n      );\n    }\n\n    // Check if the label ID has been configured\n    if (labelId.includes('YOUR_') && labelId.includes('_LABEL_ID_HERE')) {\n      throw new Error(\n        `Label ID not configured for ${task.category}! ` +\n        `Please update the labelMap in the Code Node with your actual Trello Label IDs. ` +\n        `See the README for instructions on getting Label IDs.`\n      );\n    }\n\n    // Create the formatted object for Trello\n    processedTasks.push({\n      json: {\n        listId: listId,              // The Trello List ID\n        task: task.task,             // Card title\n        desc: task.desc,             // Card description\n        idLabels: [labelId],         // Array of Trello Label IDs\n        originalDay: task.list,      // Keep the original day for reference\n        category: task.category      // Keep category for logging\n      }\n    });\n  }\n}\n\n// Validation: Check if we processed any tasks\nif (processedTasks.length === 0) {\n  throw new Error(\n    'No valid tasks were processed. Possible issues:\\n' +\n    '1. The incoming JSON is empty or invalid\\n' +\n    '2. No List ID mappings match the \"list\" values in your tasks\\n' +\n    '3. Required fields (task, list, desc, category) are missing\\n\\n' +\n    'Check the n8n execution log for details.'\n  );\n}\n\n// Log summary for debugging\nconsole.log(`Successfully processed ${processedTasks.length} tasks`);\n\nconsole.log('\\nTasks by list:');\nconst dayCount = {};\nprocessedTasks.forEach(item => {\n  const day = item.json.originalDay;\n  dayCount[day] = (dayCount[day] || 0) + 1;\n});\nconsole.log(dayCount);\n\nconsole.log('\\nTasks by category:');\nconst categoryCount = {};\nprocessedTasks.forEach(item => {\n  const cat = item.json.category;\n  categoryCount[cat] = (categoryCount[cat] || 0) + 1;\n});\nconsole.log(categoryCount);\n\n// Return the processed tasks\n// n8n will pass each item to the next node (Trello)\nreturn processedTasks;"
+      },
+      "id": "2b3c4d5e-6f7g-8h9i-0j1k-2l3m4n5o6p7q",
+      "name": "Map to Trello Format",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "boardId": {
+          "__rl": true,
+          "value": "YOUR_BOARD_ID_HERE",
+          "mode": "id"
+        },
+        "listId": "={{ $json.listId }}",
+        "name": "={{ $json.task }}",
+        "additionalFields": {
+          "description": "={{ $json.desc }}",
+          "labelIds": "={{ $json.idLabels }}"
+        }
+      },
+      "id": "3c4d5e6f-7g8h-9i0j-1k2l-3m4n5o6p7q8r",
+      "name": "Create Trello Card",
+      "type": "n8n-nodes-base.trello",
+      "typeVersion": 1,
+      "position": [
+        650,
+        300
+      ],
+      "credentials": {
+        "trelloApi": {
+          "id": "1",
+          "name": "Trello account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"message\": \"Successfully created \" + $json.cardsCreated + \" Trello cards!\", \"cards\": $json.cardIds } }}"
+      },
+      "id": "4d5e6f7g-8h9i-0j1k-2l3m-4n5o6p7q8r9s",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        850,
+        300
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook - Weekly Plan": {
+      "main": [
+        [
+          {
+            "node": "Map to Trello Format",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map to Trello Format": {
+      "main": [
+        [
+          {
+            "node": "Create Trello Card",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Trello Card": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1a2b3c4d-5e6f-7g8h-9i0j-1k2l3m4n5o6p",
+  "id": "lazyplanner-v2",
+  "meta": {
+    "instanceId": "your-instance-id"
+  },
+  "tags": []
+}

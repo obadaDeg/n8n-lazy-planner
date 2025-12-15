@@ -8,6 +8,15 @@ LazyPlanner is a zero-budget automation bridge that takes your AI-generated work
 - 🔵 **Work** / 🟢 **Study** / 🔴 **Urgent** category labels
 - 📋 **Backlog** and **Done** lists support
 - Professional focus (work and study tasks only)
+- 📦 **One-click workflow import** - Pre-configured n8n workflow ready to use!
+
+## 📚 Documentation
+
+- **[⚡ Quick Start Guide](QUICKSTART.md)** - **Start here!** Get running in 5 minutes
+- **[Setup Guide](#-quick-start)** - Detailed setup instructions (below)
+- **[Workflow Architecture](WORKFLOW.md)** - Technical deep-dive: how it all works
+- **[AI Prompt Template](prompt.md)** - The "Golden Prompt" for ChatGPT/Claude/Gemini
+- **[Trello Board Setup](#-trello-board-setup-guide)** - Board structure and label configuration
 
 ## 🎯 The Problem
 
@@ -105,6 +114,44 @@ You → GenAI → Copy JSON → HTML Interface → n8n Webhook → Trello
    ```
 
 ### Step 2: Set Up n8n Workflow
+
+**Option A: Quick Import (Recommended)**
+
+1. **Start n8n locally:**
+   ```bash
+   npx n8n
+   ```
+
+2. **Import the workflow:**
+   - Open n8n at `http://localhost:5678`
+   - Click **"Workflows"** in the left sidebar → **"Import from File"**
+   - Select [`lazyplanner-workflow.json`](lazyplanner-workflow.json)
+   - The workflow will be imported with all nodes pre-configured!
+
+3. **Configure the workflow:**
+   - **Set up Trello credentials:**
+     - Click on the "Create Trello Card" node
+     - Click "Create New Credential"
+     - Enter your Trello API Key and Token (from Step 1)
+
+   - **Update the Code Node:**
+     - Click on the "Map to Trello Format" node
+     - Find the `listMap` configuration (lines 20-30)
+     - Replace placeholder IDs with YOUR Trello List IDs
+     - Find the `labelMap` configuration (lines 35-39)
+     - Replace placeholder IDs with YOUR Trello Label IDs
+
+   - **Update the Trello Node:**
+     - Click on the "Create Trello Card" node
+     - Update "Board ID" field with YOUR Board ID
+
+4. **Activate the workflow:**
+   - Click the toggle switch in the top-right to activate
+   - The webhook URL will be: `http://localhost:5678/webhook/weekly-plan`
+
+**Option B: Manual Setup**
+
+If you prefer to build the workflow from scratch:
 
 1. **Start n8n locally:**
    ```bash
